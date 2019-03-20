@@ -1,20 +1,296 @@
-<style lang="less">
-</style>
 <template>
   <view class="container">
-    Hello world
+
+    <!-- 搜索框  -->
+    <view class="ssk"> 
+      <view class="ssk2">
+        <view class="iconfont icon-sousuo"></view>
+        <text>搜索</text>
+      </view>
+    </view>
+
+    <!-- 轮播图 -->
+    <swiper autoplay indicator-dots circular>
+      <swiper-item wx:for="{{swiperList}}" wx:key="{{goods_id}}">
+        <navigator url="/pages/goods_detail?goods_id={{item.goods_id}}">
+          <image src="{{item.image_src}}"></image>
+        </navigator>
+      </swiper-item>
+    </swiper>
+
+    <!-- 导航 -->
+    <view class="nav">
+      <view class="item" wx:for="{{navlist}}" wx:key="{{name}}">
+        <navigator 
+        open-type="{{index === 0 ? 'switchTab' : 'navigate'}}"
+        url="{{index === 0 ? item.navigator_url :'/pages/list?keyword=' + item.keyword}}">
+   
+          <image src="{{item.image_src}}"></image>
+        </navigator>
+      </view>
+    </view>
+
+    <!-- 楼层 -->
+    <view class="floor" wx:for="{{floorlist}}" wx:key="id">
+      
+      <!-- 每层标题图 -->
+      <view class="biaoti">
+        <image src="{{item.floor_title.image_src}}"></image>
+      </view>
+
+      <!-- 楼层的图 -->
+      <view class="loucen"> 
+
+        <view class="left">
+          <navigator url="/pages/list?keyword={{item.product_list[0].keyword}}">
+            <image src="{{item.product_list[0].image_src}}"></image>
+          </navigator>
+        </view>
+
+        <view class="right">
+          <navigator 
+            wx:for="{{item.product_list}}" 
+            wx:key="name"
+            wx:for-item="iamge"
+            wx:for-index="i"
+            wx:if="{{i !== 0}}"
+            url="/pages/list?keyword={{image.keyword}}">
+            <image src="{{iamge.image_src}}"></image>                 
+          </navigator>
+        </view>
+
+      </view>
+
+    </view>
+
+    <!-- 返回顶部 -->
+    <view class="goTop" @tap="goTop" hidden="{{!isShowTop}}">
+      <text class="iconfont icon-jiantoushang"></text>
+      <text>顶部</text>
+    </view>
+
   </view>
 </template>
 
 <script>
-  import wepy from 'wepy'
+import wepy from 'wepy';
 
-  export default class Index extends wepy.page {
-    config = {
-      navigationBarTitleText: 'test'
-    }
-    onLoad() {
-      console.log('onLoad')
+export default class Index extends wepy.page {
+  config = {
+    navigationBarTitleText: '首页'
+  }
+
+  data = {
+    swiperList:'',
+    navlist:'',
+    floorlist:'',
+    isShowTop:false
+  }
+
+  // 在wepy中 事件处理函数写在methods 对象里面
+  // wepy.pageScrollTo 微信API
+  methods = {
+    goTop(){
+      wepy.pageScrollTo({
+        scrollTop:0,
+      })
     }
   }
+
+  // 页面滚动触发事件的处理函数
+  onPageScroll(obj){
+
+    this.isShowTop = obj.scrollTop >= 300;
+    this.$apply()
+  }
+  
+  
+  // 生命周期回调—监听页面加载
+  onLoad() {
+    this.getswiperlist();
+    this.getnavlist();
+    this.getfloorlist();
+  }
+
+    // 请求轮播图
+    async getswiperlist(){
+      let res = await wepy.request({
+        url:"https://itjustfun.cn/api/public/v1/home/swiperdata",
+      })
+        this.swiperList = res.data.data
+        this.$apply()
+    }
+
+// wx.request({
+    //   url:"https://itjustfun.cn/api/public/v1/home/swiperdata",
+    //   success:res => {
+    //     // console.log(res);
+        
+    //     this.swiperList = res.data.data
+    //     this.$apply()
+    //   }
+    // })
+
+    //
+
+// 请求导航图片
+    async getnavlist(){
+      let res = await wepy.request({
+        url:"https://itjustfun.cn/api/public/v1/home/catitems",
+      })
+        // console.log(res);
+        this.navlist = res.data.data
+        this.$apply()
+        
+    }
+
+    // 请求楼层图片
+    async getfloorlist(){
+      let res = await wepy.request({
+        url:"https://itjustfun.cn/api/public/v1/home/floordata",
+      })
+        // console.log(res);
+        // 接口里面没有id 自定义一个id
+        res.data.data.forEach((item, index) => item.id = ++index);
+        this.floorlist = res.data.data
+        this.$apply()
+    }
+
+    // 返回顶部功能
+
+
+
+}
 </script>
+
+<style lang="less">
+
+// 导入字体图标
+@import "../assets/icon/icon-font.wxss";
+  page{
+      padding-top: 100rpx;
+  } 
+  // 搜索框
+  .ssk{
+    position: fixed;
+    width: 100%;
+    z-index: 999;
+    top: 0;
+    left: 0;
+    background-color: #ff2d4a;
+    padding: 20rpx 16rpx;
+    box-sizing: border-box;
+    
+
+    .ssk2{  
+      width: 100%;
+      height: 60rpx;
+      background-color: #ffffff;
+      border-radius: 15rpx;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+
+      .icon-sousuo{
+        font-size: 28rpx;
+      }
+      text{
+        font-size: 28rpx;
+        margin-left: 16rpx;
+      }
+    }
+  }
+
+  // 轮播图
+  swiper{
+    width: 750rpx;
+    height: 340rpx;
+
+    image{
+        width: 750rpx;
+        height: 340rpx;
+    }
+  }
+
+  // 导航图
+  .nav{
+    background-color: #ffffff;
+    margin: 24rpx 0 29rpx 0;
+    display: flex;
+
+    .item{
+      flex: 1;
+      text-align: center;
+
+      image{
+        width: 128rpx;
+        height: 128rpx;
+      }
+    }
+
+  }
+
+  // 楼层图
+  .floor{
+    // 标题图
+    .biaoti{
+      background-color: #eee;
+      padding-top: 30rpx;
+      image{
+        width: 750rpx;
+        height: 59rpx;
+      }
+    }
+    // 楼层图
+    .loucen{
+      padding: 20rpx 16rpx;
+      display: flex;
+      image{
+        vertical-align: middle;
+      }
+      navigator{
+        display: inline-block
+      }
+        
+      .left{
+        image{
+          width:232rpx;
+          height: 386rpx;
+          margin-right: 10rpx;
+        }
+      }
+      .right{
+        navigator{
+          &:nth-child(-n+2){
+            margin-bottom: 10rpx;
+          }
+          &:nth-child(odd){
+            margin-right: 10rpx;
+          }
+        }
+        image{
+          width: 233rpx;
+          height: 188rpx;
+        }
+      }
+    }
+  }
+
+  // 顶部
+  .goTop{
+    width: 100rpx;
+    height: 100rpx;
+    background-color:rgba(255,255,255,.5);
+    border-radius: 50%;
+    position: fixed;
+    right: 20rpx;
+    bottom: 80rpx;
+    z-index: 1000;
+    color: #999;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+
+</style>

@@ -1,0 +1,18 @@
+<style lang="less">
+</style>
+<template>
+  <view class="container">这是列表页面</view>
+</template>
+
+<script>
+import wepy from 'wepy';
+
+export default class List extends wepy.page {
+  config = {
+    navigationBarTitleText: '测试wepy'
+  };
+  onLoad(query) {
+    console.log(query);
+  }
+}
+</script>
